@@ -5,3 +5,7 @@ node_modules/
 .idea
 
 build/*
+
+tools/scripts/tokens.json
+
+src/lib/graphql/schema.json
