@@ -18,7 +18,6 @@ import {
     AUTO_SCROLL_SPEED,
     CONTINUOUS_READING_MODE_TO_SCROLL_DIRECTION,
     READER_PAGE_SCALE_MODE_VALUES,
-    ReaderScrollAmount,
     READING_DIRECTION_VALUES,
     READING_MODE_VALUES,
 } from '@/modules/reader/constants/ReaderSettings.constants.tsx';
@@ -79,9 +78,11 @@ export const ReaderHotkeys = ({
         readingMode,
         readingDirection,
         autoScroll,
+        scrollAmount,
     } = ReaderService.useSettings();
     const automaticScrolling = useReaderAutoScrollContext();
     const { setShowPreview } = useReaderTapZoneContext();
+    const exitReader = ReaderService.useExit();
 
     const openChapter = ReaderControls.useOpenChapter();
     const openPage = ReaderControls.useOpenPage();
@@ -105,10 +106,10 @@ export const ReaderHotkeys = ({
                 openChapter,
                 setIsOverlayVisible,
                 setShowPreview,
-                ReaderScrollAmount.SMALL,
+                scrollAmount,
             ),
         { preventDefault: true },
-        [readingMode.value, readingDirection.value, themeDirection, openChapter],
+        [readingMode.value, readingDirection.value, themeDirection, openChapter, scrollAmount],
     );
     useHotkeys(
         hotkeys[ReaderHotkey.SCROLL_FORWARD],
@@ -124,10 +125,10 @@ export const ReaderHotkeys = ({
                 openChapter,
                 setIsOverlayVisible,
                 setShowPreview,
-                ReaderScrollAmount.SMALL,
+                scrollAmount,
             ),
         { preventDefault: true },
-        [readingMode.value, readingDirection.value, themeDirection, openChapter],
+        [readingMode.value, readingDirection.value, themeDirection, openChapter, scrollAmount],
     );
     useHotkeys(
         hotkeys[ReaderHotkey.PREVIOUS_CHAPTER],
@@ -216,6 +217,7 @@ export const ReaderHotkeys = ({
             }),
         [updateSetting, autoScroll.value],
     );
+    useHotkeys(hotkeys[ReaderHotkey.EXIT_READER], exitReader, [exitReader]);
 
     useEffect(() => {
         enableScope(HotkeyScope.READER);
