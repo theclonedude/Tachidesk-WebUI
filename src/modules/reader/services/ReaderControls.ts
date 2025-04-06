@@ -177,8 +177,14 @@ export class ReaderControls {
         const { t } = useTranslation();
         const { readingMode, shouldInformAboutMissingChapter, shouldInformAboutScanlatorChange } =
             ReaderService.useSettings();
-        const { currentChapter, previousChapter, nextChapter, chapters, setReaderStateChapters } =
-            useReaderStateChaptersContext();
+        const {
+            currentChapter,
+            previousChapter,
+            nextChapter,
+            chapters,
+            visibleChapters: { lastLeadingChapterSourceOrder, lastTrailingChapterSourceOrder },
+            setReaderStateChapters,
+        } = useReaderStateChaptersContext();
 
         const openChapter = ReaderService.useNavigateToChapter();
 
@@ -230,21 +236,28 @@ export class ReaderControls {
                             );
                         }
 
-                        setReaderStateChapters((prevState) =>
-                            updateReaderStateVisibleChapters(
-                                isPreviousChapter,
-                                prevState,
-                                chapterToOpen.sourceOrder,
-                                scrollIntoView,
-                                isPreviousChapter ? false : undefined,
-                                !isPreviousChapter ? false : undefined,
-                            ),
-                        );
+                        const isAlreadyLoaded =
+                            lastLeadingChapterSourceOrder <= chapterToOpen.sourceOrder &&
+                            lastTrailingChapterSourceOrder >= chapterToOpen.sourceOrder;
+                        const keepRenderedChapters = !scrollIntoView || isAlreadyLoaded;
 
-                        openChapter(
-                            chapterToOpen,
-                            getReaderOpenChapterResumeMode(isSpecificChapterMode, isPreviousChapter),
-                        );
+                        if (keepRenderedChapters) {
+                            setReaderStateChapters((prevState) =>
+                                updateReaderStateVisibleChapters(
+                                    isPreviousChapter,
+                                    prevState,
+                                    chapterToOpen.sourceOrder,
+                                    scrollIntoView,
+                                    isPreviousChapter ? false : undefined,
+                                    !isPreviousChapter ? false : undefined,
+                                ),
+                            );
+                        }
+
+                        openChapter(chapterToOpen, {
+                            resumeMode: getReaderOpenChapterResumeMode(isSpecificChapterMode, isPreviousChapter),
+                            updateInitialChapter: !keepRenderedChapters,
+                        });
                     } catch (error) {
                         defaultPromiseErrorHandler('ReaderControls#useOpenChapter#doOpenChapter:')(error);
                     }
@@ -259,6 +272,8 @@ export class ReaderControls {
                 readingMode.value,
                 shouldInformAboutMissingChapter,
                 shouldInformAboutScanlatorChange,
+                lastLeadingChapterSourceOrder,
+                lastTrailingChapterSourceOrder,
             ],
         );
     }
@@ -587,7 +602,7 @@ export class ReaderControls {
         const { setIsVisible: setIsOverlayVisible } = useReaderOverlayContext();
         const { currentPageIndex, pages } = userReaderStatePagesContext();
         const { setShowPreview } = useReaderTapZoneContext();
-        const { readingMode, readingDirection, isStaticNav } = ReaderService.useSettings();
+        const { readingMode, readingDirection, isStaticNav, scrollAmount } = ReaderService.useSettings();
         const openPage = ReaderControls.useOpenPage();
         const openChapter = ReaderControls.useOpenChapter();
 
@@ -625,6 +640,7 @@ export class ReaderControls {
                                 openChapter,
                                 setIsOverlayVisible,
                                 setShowPreview,
+                                scrollAmount,
                             );
                         } else {
                             openPage(action === TapZoneRegionType.PREVIOUS ? 'previous' : 'next', 'ltr');
@@ -644,6 +660,7 @@ export class ReaderControls {
                 openChapter,
                 themeDirection,
                 isStaticNav,
+                scrollAmount,
             ],
         );
     }

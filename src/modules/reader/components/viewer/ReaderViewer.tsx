@@ -161,7 +161,7 @@ const BaseReaderViewer = forwardRef(
         ref: ForwardedRef<HTMLDivElement | null>,
     ) => {
         const { direction: themeDirection } = useTheme();
-        const { resumeMode } = useLocation<ReaderOpenChapterLocationState>().state ?? {
+        const { resumeMode = ReaderResumeMode.START } = useLocation<ReaderOpenChapterLocationState>().state ?? {
             resumeMode: ReaderResumeMode.START,
         };
 
@@ -282,16 +282,13 @@ const BaseReaderViewer = forwardRef(
         useReaderAutoScroll(isOverlayVisible, automaticScrolling);
         useReaderPreserveScrollPosition(
             scrollElementRef,
-            currentChapter?.id,
-            currentChapterIndex,
             currentPageIndex,
-            chaptersToRender,
-            visibleChapters,
             readingMode,
-            isContinuousReadingModeActive,
             readingDirection,
+            isContinuousReadingModeActive,
             readerNavBarWidth,
             setPageToScrollToIndex,
+            pageScaleMode,
         );
 
         useLayoutEffect(() => {
@@ -433,6 +430,7 @@ const BaseReaderViewer = forwardRef(
                             onSizeChange={onChapterViewSizeChange}
                             minWidth={isChapterSizeSourceChapter ? 0 : minChapterViewWidth}
                             minHeight={isChapterSizeSourceChapter ? 0 : minChapterViewHeight}
+                            scrollElement={scrollElementRef.current}
                         />
                     );
                 })}
